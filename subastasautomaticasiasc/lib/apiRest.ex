@@ -49,6 +49,17 @@
   defmodule MyAPP.API do
     use Maru.Router
   
+    def start(_type, _args) do
+      BuyerNotifier.Supervisor.start_link
+      #ApiRest.Supervisor.start_link
+
+      children = [
+        {Buyer.Supervisor, :implicit_arg},
+        {Bid.Supervisor, :implicit_arg}
+        ]
+      opts = [strategy: :one_for_one, name: __MODULE__]
+      Supervisor.start_link(children, opts)
+    end
   
     plug Plug.Parsers,
       pass: ["*/*"],

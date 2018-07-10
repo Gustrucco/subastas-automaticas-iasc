@@ -27,7 +27,8 @@ defmodule SubastasAutomaticas.MixProject do
       {:cowboy, "~> 2.3"},
       {:jason, "~> 1.0"},
       {:confex, "~> 3.3"},
-      {:swarm, "~> 3.0"}
+      {:swarm, "~> 3.0"},
+      {:amnesia, "~> 0.2.7"}
     ]
   end
 end

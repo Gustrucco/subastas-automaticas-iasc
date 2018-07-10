@@ -1,20 +1,6 @@
 defmodule SubastasAutomaticas do
-  @moduledoc """
-  Documentation for SubastasAutomaticas.
-  """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> SubastasAutomaticas.hello
-      :world
-
-  """
   use GenServer
   
- 
   def start_link do
     GenServer.start_link(__MODULE__, [])
   end

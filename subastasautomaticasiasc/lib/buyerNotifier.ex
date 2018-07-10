@@ -13,6 +13,18 @@ defmodule BuyerNotifier do
 		GenServer.call(pid, :get_buyers)
 	end
 
+	def notify_new_bid(pid, bid) do
+		GenServer.cast(pid, {:notify_new_bid, bid})
+	end
+
+	def notify_new_price(pid, bid) do
+		GenServer.cast(pid, {:notify_new_price, bid})
+	end
+
+	def notify_cancelation(pid, bid) do
+		GenServer.cast(pid, {:notify_cancelation, bid})
+	end
+
 	# SERVER
 
 	def init(buyers) do
@@ -23,7 +35,24 @@ defmodule BuyerNotifier do
 		{:noreply, [new_buyer | buyers]}
 	end
 
+	def handle_cast({:notify_new_bid, bid}, buyers) do
+		Enum.each(buyers, fn buyer -> buyer.notify_new_bid(bid) end)
+		{:noreply, buyers}
+	end
+
+	def handle_cast({:notify_new_price, bid}, buyers) do
+		Enum.each(buyers, fn buyer -> buyer.notify_new_price(bid) end)
+		{:noreply, buyers}
+	end
+
+	def handle_cast({:notify_cancelation, bid}, buyers) do
+		Enum.each(buyers, fn buyer -> buyer.notify_cancelation(bid) end)
+		{:noreply, buyers}
+	end
+
 	def handle_call(:get_buyers, _from, buyers) do
 		{:reply, buyers, buyers}
 	end
+
+
 end

@@ -2,20 +2,20 @@
 defmodule Buyer.Supervisor do
   use DynamicSupervisor
 
-  def start_link do
+  def start_link(_arg) do
+    IO.puts "********* START_LINK Buyer.Supervisor *********"
     DynamicSupervisor.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
-  def init do
+  def init(:ok) do
+    IO.puts "********* INIT Buyer.Supervisor *********"
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  #ARG: %{:name => name , :ip => ip , :interestedTags => interestedTags}
-	def start_child(arg) do
-    # This will start child by calling Worker.start_link(arg)
-    # https://github.com/elixir-lang/elixir/issues/7369
+	def add_buyer(name, ip, tags) do
+    IO.puts "********* start_child Buyer.Supervisor *********"
 
-    spec = Buyer.child_spec(arg)
+    spec = Buyer.child_spec({name, ip, tags})
     DynamicSupervisor.start_child(__MODULE__, spec)
   end
 

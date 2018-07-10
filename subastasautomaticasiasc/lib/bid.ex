@@ -1,13 +1,17 @@
 defmodule Bid do
 	use GenServer
 
-	def start_link(arg) do
-		GenServer.start_link(__MODULE__, [arg])
+	def start_link({tags, defaultPrice, duration, item, buyerNotifier}) do
+	IO.puts "Bid - start_link"
+		GenServer.start_link(__MODULE__,
+			{tags, defaultPrice, duration, item, buyerNotifier},
+			name: {:global, "bid:#{item}"})
 	end
 
 	# SERVER
 
-	def init(%{:tags => tags , :defaultPrice => defaultPrice , :duration => duration, :item => item, :buyerNotifier => buyerNotifier }) do
+	def init({tags, defaultPrice, duration, item, buyerNotifier}) do
+		IO.puts "Bid - init"
 		timer = Process.send_after(self(), :end_bid, duration)
 		#Si el init se ejecuta con el actor ya creado, notificar de la nueva subasta
 		#Si no ver donde hacer esa logica

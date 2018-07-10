@@ -10,7 +10,7 @@
       end
   
       post do
-        Buyer.Supervisor.start_child(%{:name => params[:name] , :ip => params[:ip] , :interestedTags => params[:interestedTags]})
+        Buyer.Supervisor.add_buyer(params[:name], params[:ip], params[:interestedTags])
         json(conn, "Buyer Creado")
       end
     end
@@ -29,7 +29,8 @@
       end
   
       post do
-        #crear el nuevo Bid
+        #El ultimo parametro tiene que ser el buyerNotifier
+        Bid.Supervisor.add_bid(params[:tags], params[:defaultPrice], params[:duration], params[:item], :ok)
         json(conn, "creado")
       end
     end
@@ -49,12 +50,13 @@
   defmodule MyAPP.API do
     use Maru.Router
   
-    def start(_type, _args) do
+    def start_link(:ok) do
+      IO.puts "** Arranqueti **"
+      Buyer.Supervisor.start_link(:ok)
+      Bid.Supervisor.start_link(:ok)
       BuyerNotifier.Supervisor.start_link
-      #ApiRest.Supervisor.start_link
 
-      Buyer.Supervisor.start_link
-      Bid.Supervisor.start_link
+      #ApiRest.Supervisor.start_link
     end
   
     plug Plug.Parsers,

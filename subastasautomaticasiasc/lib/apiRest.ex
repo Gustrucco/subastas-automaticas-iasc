@@ -6,7 +6,7 @@
       params do
         requires :logicName, type: String
         requires :ip, type: String
-        requires :tags, type: List[String] , keep_blank: true
+        requires :interestedTags, type: List[String] , keep_blank: true
       end
   
       post do
@@ -22,15 +22,15 @@
     namespace :bids do
   
       params do
-        requires :price, type: Integer
+        requires :defaultPrice, type: Float
         requires :duration, type: Integer
         requires :tags, type: List[String] , keep_blank: true
-        requires :article, type: Map, keep_blank: true
+        requires :item, type: Map, keep_blank: true
       end
   
       post do
         #crear el nuevo Bid
-        json(conn, "cread0")
+        json(conn, "creado")
       end
     end
   end

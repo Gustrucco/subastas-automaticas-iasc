@@ -4,7 +4,7 @@
     namespace :buyers do
   
       params do
-        requires :logicName, type: String
+        requires :name, type: String
         requires :ip, type: String
         requires :interestedTags, type: List[String] , keep_blank: true
       end

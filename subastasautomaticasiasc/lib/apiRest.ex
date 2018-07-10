@@ -10,8 +10,8 @@
       end
   
       post do
-        #crear el nuevo Buyer
-        json(conn, "creado")
+        Buyer.Supervisor.start_child(%{:name => params[:name] , :ip => params[:ip] , :interestedTags => params[:interestedTags]})
+        json(conn, "Buyer Creado")
       end
     end
   end
@@ -53,12 +53,8 @@
       BuyerNotifier.Supervisor.start_link
       #ApiRest.Supervisor.start_link
 
-      children = [
-        {Buyer.Supervisor, :implicit_arg},
-        {Bid.Supervisor, :implicit_arg}
-        ]
-      opts = [strategy: :one_for_one, name: __MODULE__]
-      Supervisor.start_link(children, opts)
+      Buyer.Supervisor.start_link
+      Bid.Supervisor.start_link
     end
   
     plug Plug.Parsers,

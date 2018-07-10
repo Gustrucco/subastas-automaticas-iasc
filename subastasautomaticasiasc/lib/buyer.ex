@@ -2,12 +2,14 @@ defmodule Buyer do
 	use GenServer
 
 	def start_link(arg) do
+		IO.puts "Buyer - start_link"
 		GenServer.start_link(__MODULE__, [arg])
 	end
 
 	# SERVER
 
 	def init(%{:name => name , :ip => ip , :interestedTags => interestedTags }) do
+		IO.puts "Buyer - init"
 		{:ok, %{:name => name , :ip => ip ,:interestedTags => interestedTags }}
 	end
 

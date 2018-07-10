@@ -13,10 +13,11 @@ defmodule Buyer.Supervisor do
     )
   end
 
-	def start_child() do
-    # This will start child by calling Worker.start_link(implicit_arg, foo, bar, baz)
+  #ARG: %{:name => name , :ip => ip , :interestedTags => interestedTags}
+	def start_child(arg) do
+    # This will start child by calling Worker.start_link(arg)
 	 # https://github.com/elixir-lang/elixir/issues/7369
-	spec = Supervisor.Spec.worker(Buyer, [])
+	spec = Supervisor.Spec.worker(Buyer, [arg])
 	DynamicSupervisor.start_child(__MODULE__, spec)
   end
 

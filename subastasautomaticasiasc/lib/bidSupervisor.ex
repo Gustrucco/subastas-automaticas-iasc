@@ -8,15 +8,16 @@ defmodule Bid.Supervisor do
 
   	def init(implicit_arg) do
     	DynamicSupervisor.init(
-      		strategy: :one_for_one,
+        strategy: :one_for_one,
      		extra_arguments: [implicit_arg]
     	)
   	end
 
-	def start_child() do
-    	# This will start child by calling Worker.start_link(implicit_arg, foo, bar, baz)
+    #ARG: %{:tags => tags , :defaultPrice => defaultPrice , :duration => duration, :item => item, :buyerNotifier => buyerNotifier }
+	def start_child(arg) do
+    	# This will start child by calling Worker.start_link(arg)
       # https://github.com/elixir-lang/elixir/issues/7369
-    	spec = Supervisor.Spec.worker(Bid, [])
+    	spec = Supervisor.Spec.worker(Bid, [arg])
     	DynamicSupervisor.start_child(__MODULE__, spec)
   	end
 

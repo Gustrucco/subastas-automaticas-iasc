@@ -1,8 +1,8 @@
 defmodule Buyer do
 	use GenServer
 
-	def start_link do
-		GenServer.start_link(__MODULE__, [])
+	def start_link(arg) do
+		GenServer.start_link(__MODULE__, [arg])
 	end
 
 	# SERVER

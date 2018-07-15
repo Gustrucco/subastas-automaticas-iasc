@@ -28,7 +28,8 @@ defmodule SubastasAutomaticas.MixProject do
       {:jason, "~> 1.0"},
       {:confex, "~> 3.3"},
       {:swarm, "~> 3.0"},
-      {:amnesia, "~> 0.2.7"}
+      {:amnesia, "~> 0.2.7"},
+      {:httpoison, "~> 1.0"}
     ]
   end
 end

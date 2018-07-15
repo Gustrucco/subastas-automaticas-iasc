@@ -2,7 +2,13 @@
     use Maru.Router
   
     namespace :buyers do
-  
+      
+      route_param :pid do
+        post do
+          json(conn, %{ user: params[:id] })
+        end
+      end
+
       params do
         requires :name, type: String
         requires :ip, type: String
@@ -33,6 +39,19 @@
         Bid.Supervisor.add_bid(params[:tags], params[:defaultPrice], params[:duration], params[:item], :ok)
         json(conn, "creado")
       end
+
+      route_param :bidId do
+        namespace :offer do
+          params do
+            requires :buyerName, type: String
+            requires :offer, type: Float
+          end
+          post do
+            #buscar el buyer y realizar la oferta hacia la bid
+            json(conn,params[:buyerName])
+          end
+        end
+      end
     end
   end
   
@@ -55,8 +74,13 @@
       Buyer.Supervisor.start_link(:ok)
       Bid.Supervisor.start_link(:ok)
       BuyerNotifier.Supervisor.start_link
-
       #ApiRest.Supervisor.start_link
+      children = [
+        {Buyer.Supervisor, :implicit_arg},
+        {Bid.Supervisor, :implicit_arg}
+        ]
+      opts = [strategy: :one_for_one, name: __MODULE__]
+      Supervisor.start_link(children, opts)
     end
   
     plug Plug.Parsers,

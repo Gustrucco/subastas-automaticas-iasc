@@ -70,7 +70,9 @@
     use Maru.Router
   
     def start_link(:ok) do
-      IO.puts "** Arranqueti **"
+      IO.puts "** Arrancuti **"
+      DataBase.start_link(:ok)
+      DataBase.init()
       #ApiRest.Supervisor.start_link
       children = [
         {Buyer.Supervisor, :implicit_arg},

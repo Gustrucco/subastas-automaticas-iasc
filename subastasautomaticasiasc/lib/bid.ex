@@ -1,10 +1,10 @@
 defmodule Bid do
 	use GenServer
 
-	def start_link({tags, defaultPrice, duration, item, buyerNotifier}) do
+	def start_link({defaultPrice, duration, tags, item, buyerNotifier}) do
 		IO.puts "Bid - start_link"
 		GenServer.start_link(__MODULE__,
-			{tags, defaultPrice, duration, item, buyerNotifier},
+			{defaultPrice, duration, tags, item, buyerNotifier},
 			name: {:global, "bid:#{item}"})
 	end
 

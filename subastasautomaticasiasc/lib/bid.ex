@@ -3,20 +3,20 @@ defmodule Bid do
 
 	def start_link({defaultPrice, duration, tags, item, buyerNotifier}) do
 		IO.puts "Bid - start_link"
+		id = System.system_time()
 		GenServer.start_link(__MODULE__,
-			{defaultPrice, duration, tags, item, buyerNotifier},
-			name: {:global, "bid:#{item}"})
+			{id, defaultPrice, duration, tags, item, buyerNotifier},
+			name: {:global, "bid:#{id}"})
 	end
 
 	# SERVER
 
-	def init({defaultPrice, duration, tags, item, buyerNotifier}) do
+	def init({id, defaultPrice, duration, tags, item, buyerNotifier}) do
 		IO.puts "Bid - init"
 		Process.send_after(self(), :end_bid, duration)
-		bidId = System.system_time()
-		IO.puts bidId
-		:ets.insert(:bids, { bidId, tags, defaultPrice, duration, item, buyerNotifier, defaultPrice, "", :calendar.universal_time()})
-		{:ok, %{ :id => bidId,
+		IO.puts id
+		:ets.insert(:bids, { id, tags, defaultPrice, duration, item, buyerNotifier, defaultPrice, "", :calendar.universal_time()})
+		{:ok, %{ :id => id,
 		 :tags => tags,
 		 :defaultPrice => defaultPrice,
 		 :duration => duration,

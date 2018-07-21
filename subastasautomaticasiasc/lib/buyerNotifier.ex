@@ -58,6 +58,4 @@ defmodule BuyerNotifier do
 	def handle_call(:get_buyers, _from, buyers) do
 		{:reply, buyers, buyers}
 	end
-
-
 end

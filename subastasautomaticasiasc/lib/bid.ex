@@ -12,8 +12,11 @@ defmodule Bid do
 
 	def init({tags, defaultPrice, duration, item, buyerNotifier}) do
 		IO.puts "Bid - init"
-		timer = Process.send_after(self(), :end_bid, duration)
-		{:ok, %{:tags => tags,
+		Process.send_after(self(), :end_bid, duration)
+		bidId = System.system_time()
+		:ets.insert(:bids, { bidId, tags, defaultPrice, duration, item, buyerNotifier, defaultPrice, "", :calendar.universal_time()})
+		{:ok, %{ :id => bidId,
+		 :tags => tags,
 		 :defaultPrice => defaultPrice,
 		 :duration => duration,
 		 :item => item,
@@ -24,7 +27,7 @@ defmodule Bid do
 	end
 
 	def bid_for_buyer(bid) do
-		%{:tags => bid[:tags], 
+		%{:tags => bid[:tags],
 		 :price =>bid[:actualPrice],
 		 :item => bid[:item],
 		 :bidPid => :erlang.pid_to_list(self())}
@@ -32,18 +35,22 @@ defmodule Bid do
 	
 	def handle_info(:end_bid, bid) do
 		GenServer.cast(bid[:buyerNotifier],{:notify_ending,bid})
+		:ets.delete(:bids, bid[:id])
 		Process.exit(self(), :shutdown)
 		{:noreply, bid}
 	end
 
-	def handle_cast({:new_offer, price}, bid) do
-		newBid = Map.put(bid,:actualPrice,price)
+	def handle_cast({:new_offer, price, winner}, bid) do
+		newBid = Map.put(bid, :actualPrice, price)
+		newBid = Map.put(bid, :actualWinner, winner)
+		:ets.insert(:bids, { bid[:id], bid[:tags], bid[:defaultPrice], bid[:duration], bid[:item], bid[:buyerNotifier], bid[:price], winner, :calendar.universal_time()})
 		GenServer.cast(bid[:buyerNotifier],{:notify_new_price,Bid.bid_for_buyer(newBid)})
 		{:noreply, newBid}
 	end
 
 	def handle_cast({:cancel}, bid) do
 		GenServer.cast(bid[:buyerNotifier],{:notify_cancelation,Bid.bid_for_buyer(bid)})
+		:ets.delete(:bids, bid[:id])
 		Process.exit(self(), :shutdown)
 		{:noreply, bid}
 	end

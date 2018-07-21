@@ -12,6 +12,7 @@ defmodule Buyer do
 
 	def init({name, ip, interestedTags}) do
 		IO.puts "Buyer - init"
+		:ets.insert(:buyers, { ip, name, interestedTags, :calendar.universal_time() })
 		{:ok, %{:name => name , :ip => ip ,:interestedTags => interestedTags }}
 	end
 	

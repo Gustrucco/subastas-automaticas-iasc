@@ -13,6 +13,6 @@ use GenServer
   end
 end
 
-:ets.lookup(:buyers, "doomspork")
+#:ets.lookup(:buyers, ip)
 
-:ets.lookup(:bids, "doomspork")
+#:ets.lookup(:bids, id)

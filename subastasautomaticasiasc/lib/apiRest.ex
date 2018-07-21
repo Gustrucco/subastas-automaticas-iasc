@@ -17,7 +17,7 @@
   
       post do
         Buyer.Supervisor.add_buyer(params[:name], params[:ip], params[:interestedTags])
-        json(conn, "Buyer Creado")
+        json(conn, "Created buyer")
       end
     end
   end
@@ -37,7 +37,7 @@
       post do
         #El ultimo parametro tiene que ser el buyerNotifier
         Bid.Supervisor.add_bid(params[:tags], params[:defaultPrice], params[:duration], params[:item], :ok)
-        json(conn, "creado")
+        json(conn, "Created bid")
       end
 
       route_param :bidId do

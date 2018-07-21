@@ -36,7 +36,7 @@
   
       post do
         #El ultimo parametro tiene que ser el buyerNotifier
-        Bid.Supervisor.add_bid(params[:tags], params[:defaultPrice], params[:duration], params[:item], :ok)
+        Bid.Supervisor.add_bid(params[:defaultPrice], params[:duration], params[:tags], params[:item], :ok)
         json(conn, "Created bid")
       end
 

@@ -12,10 +12,10 @@ defmodule Bid.Supervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-	def add_bid(defaultPrice, duration, tags, item, buyerNotifier) do
+	def add_bid(defaultPrice, duration, tags, item) do
     IO.puts "********* start_child Bid.Supervisor *********"
 
-    spec = Bid.child_spec({defaultPrice, duration, tags, item, buyerNotifier})
+    spec = Bid.child_spec({defaultPrice, duration, tags, item})
     DynamicSupervisor.start_child(__MODULE__, spec)
   end
   

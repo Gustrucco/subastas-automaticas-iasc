@@ -21,39 +21,39 @@
       end
     end
   end
-  
-  defmodule Router.Bids do
-    use Maru.Router
-  
-    namespace :bids do
-  
-      params do
-        requires :defaultPrice, type: Float
-        requires :duration, type: Integer
-        requires :tags, type: List[String] , keep_blank: true
-        requires :item, type: Map, keep_blank: true
-      end
-  
-      post do
-        #El ultimo parametro tiene que ser el buyerNotifier
-        Bid.Supervisor.add_bid(params[:defaultPrice], params[:duration], params[:tags], params[:item], :ok)
-        json(conn, "Created bid")
-      end
 
-      route_param :bidId do
-        namespace :offer do
-          params do
-            requires :buyerName, type: String
-            requires :offer, type: Float
-          end
-          post do
-            #buscar el buyer y realizar la oferta hacia la bid
-            json(conn,params[:buyerName])
-          end
+defmodule Router.Bids do
+  use Maru.Router
+
+  namespace :bids do
+
+    params do
+      requires :defaultPrice, type: Float
+      requires :duration, type: Integer
+      requires :tags, type: List[String] , keep_blank: true
+      requires :item, type: Map, keep_blank: true
+    end
+
+    post do
+      Bid.Supervisor.add_bid(params[:defaultPrice], params[:duration], params[:tags], params[:item])
+      json(conn, "Created bid")
+    end
+
+    route_param :bidId do
+      namespace :offer do
+        params do
+          requires :buyerName, type: String
+          requires :offer, type: Float
+        end
+        post do
+
+          #buscar el buyer y realizar la oferta hacia la bid
+          json(conn,params[:buyerName])
         end
       end
     end
   end
+end
   
   
   defmodule Router.Homepage do

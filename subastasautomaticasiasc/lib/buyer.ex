@@ -1,8 +1,7 @@
 defmodule Buyer do
 	use GenServer
 
-	def start_link({name, ip, interestedTags}) do
-		id = System.system_time()
+	def start_link({id, name, ip, interestedTags}) do
 		IO.puts "Buyer #{id} - start_link"
 		GenServer.start_link(__MODULE__,
 			{id, name, ip, interestedTags},

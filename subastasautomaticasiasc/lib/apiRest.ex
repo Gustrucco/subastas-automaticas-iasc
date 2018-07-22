@@ -2,13 +2,6 @@
     use Maru.Router
   
     namespace :buyers do
-      
-      route_param :pid do
-        post do
-          json(conn, %{ user: params[:id] })
-        end
-      end
-
       params do
         requires :name, type: String
         requires :ip, type: String
@@ -16,8 +9,9 @@
       end
   
       post do
-        Buyer.Supervisor.add_buyer(params[:name], params[:ip], params[:interestedTags])
-        json(conn, "Created buyer")
+        id = System.system_time()
+        Buyer.Supervisor.add_buyer(id, params[:name], params[:ip], params[:interestedTags])
+        json(conn, "Created buyer #{id}")
       end
     end
   end
@@ -35,8 +29,9 @@ defmodule Router.Bids do
     end
 
     post do
-      Bid.Supervisor.add_bid(params[:defaultPrice], params[:duration], params[:tags], params[:item])
-      json(conn, "Created bid")
+      id = System.system_time()
+      Bid.Supervisor.add_bid(id, params[:defaultPrice], params[:duration], params[:tags], params[:item])
+      json(conn, "Created bid #{id}")
     end
 
     route_param :bidId do

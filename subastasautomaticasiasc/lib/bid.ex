@@ -1,8 +1,7 @@
 defmodule Bid do
 	use GenServer
 
-	def start_link({defaultPrice, duration, tags, item}) do
-		id = System.system_time()
+	def start_link({id, defaultPrice, duration, tags, item}) do
 		IO.puts "Bid #{id} - start_link"
 		GenServer.start_link(__MODULE__,
 			{id, defaultPrice, duration, tags, item},

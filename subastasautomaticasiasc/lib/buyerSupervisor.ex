@@ -12,10 +12,10 @@ defmodule Buyer.Supervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-	def add_buyer(name, ip, tags) do
+	def add_buyer(id, name, ip, tags) do
     IO.puts "********* start_child Buyer.Supervisor *********"
 
-    spec = Buyer.child_spec({name, ip, tags})
+    spec = Buyer.child_spec({id, name, ip, tags})
     DynamicSupervisor.start_child(__MODULE__, spec)
   end
 

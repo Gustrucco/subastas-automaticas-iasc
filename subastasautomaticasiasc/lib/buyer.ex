@@ -2,17 +2,18 @@ defmodule Buyer do
 	use GenServer
 
 	def start_link({name, ip, interestedTags}) do
-		IO.puts "Buyer - start_link"
+		id = System.system_time()
+		IO.puts "Buyer #{id} - start_link"
 		GenServer.start_link(__MODULE__,
-			{name, ip, interestedTags},
+			{id, name, ip, interestedTags},
 			name: {:global, "buyer:#{ip}"})
 	end
 
 	# SERVER
 
-	def init({name, ip, interestedTags}) do
-		IO.puts "Buyer - init"
-		:ets.insert(:buyers, { ip, name, interestedTags, :calendar.universal_time() })
+	def init({id, name, ip, interestedTags}) do
+		IO.puts "Buyer #{id} - init"
+		:ets.insert(:buyers, { id, ip, name, interestedTags, :calendar.universal_time() })
 		{:ok, %{:name => name , :ip => ip ,:interestedTags => interestedTags }}
 	end
 	
@@ -29,7 +30,7 @@ defmodule Buyer do
 	def handle_cast({:notify_new_bid, bid}, buyer) do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				HTTPoison.post "http://#{buyer[:ip]}/newbid",
+				HTTPoison.post "http://#{buyer[:id]}/newbid",
 				Jason.encode(buyer),
 				[{"Content-Type", "application/json"}],
 				[]
@@ -41,7 +42,7 @@ defmodule Buyer do
 	def handle_cast({:notify_new_price, bid}, buyer) do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				HTTPoison.post "http://#{buyer[:ip]}/newpriceforbid",
+				HTTPoison.post "http://#{buyer[:id]}/newpriceforbid",
 				Jason.encode(buyer),
 				[{"Content-Type", "application/json"}],
 				[]
@@ -53,7 +54,7 @@ defmodule Buyer do
 	def handle_cast({:notify_cancelation, bid}, buyer) do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				HTTPoison.post "http://#{buyer[:ip]}/bidcancelation",
+				HTTPoison.post "http://#{buyer[:id]}/bidcancelation",
 				Jason.encode(buyer),
 				[{"Content-Type", "application/json"}],
 				[]
@@ -65,7 +66,7 @@ defmodule Buyer do
 	def handle_cast({:notify_ending, bid}, buyer) do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				HTTPoison.post "http://#{buyer[:ip]}/bidending",
+				HTTPoison.post "http://#{buyer[:id]}/bidending",
 				Jason.encode(buyer),
 				[{"Content-Type", "application/json"}],
 				[]

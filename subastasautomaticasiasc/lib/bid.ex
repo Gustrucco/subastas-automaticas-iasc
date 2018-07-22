@@ -2,8 +2,8 @@ defmodule Bid do
 	use GenServer
 
 	def start_link({defaultPrice, duration, tags, item}) do
-		IO.puts "Bid - start_link"
 		id = System.system_time()
+		IO.puts "Bid #{id} - start_link"
 		GenServer.start_link(__MODULE__,
 			{id, defaultPrice, duration, tags, item},
 			name: {:global, "bid:#{id}"})
@@ -12,9 +12,8 @@ defmodule Bid do
 	# SERVER
 
 	def init({id, defaultPrice, duration, tags, item}) do
-		IO.puts "Bid - init"
-		Process.send_after(self(), :end_bid, duration)
-		IO.puts id
+		IO.puts "Bid #{id} - init"
+		#Process.send_after(self(), :end_bid, duration)
 		:ets.insert(:bids, { id, defaultPrice, tags,duration, item, defaultPrice, "", :calendar.universal_time()})
 		{:ok, %{ :id => id,
 		 :tags => tags,
@@ -35,6 +34,7 @@ defmodule Bid do
 	
 	def handle_info(:end_bid, bid) do
 		#buscar buyerNotifier
+		IO.puts "Bid #{bid[:id]} ended"
 		GenServer.cast(bid[:buyerNotifier],{:notify_ending,bid})
 		:ets.delete(:bids, bid[:id])
 		Process.exit(self(), :shutdown)
@@ -43,7 +43,7 @@ defmodule Bid do
 
 	def handle_cast({:new_offer, price, winner}, bid) do
 		newBid = Map.put(bid, :actualPrice, price)
-		newBid = Map.put(bid, :actualWinner, winner)
+		newBid = Map.put(newBid, :actualWinner, winner)
 		:ets.insert(:bids, { bid[:id], bid[:tags], bid[:defaultPrice], bid[:duration], bid[:item], bid[:price], winner, :calendar.universal_time()})
 		#buscar buyerNotifier
 		GenServer.cast(bid[:buyerNotifier],{:notify_new_price,Bid.bid_for_buyer(newBid)})
@@ -52,6 +52,7 @@ defmodule Bid do
 
 	def handle_cast({:cancel}, bid) do
 		#buscar buyerNotifier
+		IO.puts "Bid #{bid[:id]} canceled"
 		GenServer.cast(bid[:buyerNotifier],{:notify_cancelation,Bid.bid_for_buyer(bid)})
 		:ets.delete(:bids, bid[:id])
 		Process.exit(self(), :shutdown)

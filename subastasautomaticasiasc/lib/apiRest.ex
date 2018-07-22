@@ -18,6 +18,7 @@
 
 defmodule Router.Bids do
   use Maru.Router
+  use GenServer
 
   namespace :bids do
 
@@ -41,9 +42,17 @@ defmodule Router.Bids do
           requires :offer, type: Float
         end
         post do
+          bid = Enum.at(:ets.lookup(:bids, params[:bidId]),0)
+          GenServer.cast(elem(bid, 1), {:new_offer, params[:offer], params[:buyerName]})
+          json(conn, "New winner #{params[:buyerName]} in bid #{params[:bidId]} with the ammount of #{params[:offer]}")
+        end
+      end
 
-          #buscar el buyer y realizar la oferta hacia la bid
-          json(conn,params[:buyerName])
+      namespace :cancel do
+        post do
+          bid = Enum.at(:ets.lookup(:bids, params[:bidId]),0)
+          GenServer.cast(elem(bid, 1), :cancel)
+          json(conn, "Canceled bid #{params[:bidId]}")
         end
       end
     end

@@ -27,48 +27,56 @@ defmodule Buyer do
 	end
 	
 	def handle_cast({:notify_new_bid, bid}, buyer) do
+		IO.puts "New bid #{bid[:id]}"
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				HTTPoison.post "http://#{buyer[:id]}/newbid",
-				Jason.encode(buyer),
-				[{"Content-Type", "application/json"}],
-				[]
+				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
+				#HTTPoison.post "http://#{buyer[:id]}/newbid",
+				#Jason.encode(buyer),
+				#[{"Content-Type", "application/json"}],
+				#[]
 			end
 		)
 		{:noreply, buyer}
 	end
 
 	def handle_cast({:notify_new_price, bid}, buyer) do
+		IO.puts "New offer in bid #{bid[:id]}"
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				HTTPoison.post "http://#{buyer[:id]}/newpriceforbid",
-				Jason.encode(buyer),
-				[{"Content-Type", "application/json"}],
-				[]
+				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
+				#HTTPoison.post "http://#{buyer[:id]}/newpriceforbid",
+				#Jason.encode(buyer),
+				#[{"Content-Type", "application/json"}],
+				#[]
 			end
 		)
 		{:noreply, buyer}
 	end
 
 	def handle_cast({:notify_cancelation, bid}, buyer) do
+		IO.puts "Bid #{bid[:id]} canceled"
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				HTTPoison.post "http://#{buyer[:id]}/bidcancelation",
-				Jason.encode(buyer),
-				[{"Content-Type", "application/json"}],
-				[]
+				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
+				#HTTPoison.post "http://#{buyer[:id]}/bidcancelation",
+				#Jason.encode(buyer),
+				#[{"Content-Type", "application/json"}],
+				#[]
 			end
 		)
 		{:noreply, buyer}
 	end
 
 	def handle_cast({:notify_ending, bid}, buyer) do
+		IO.puts "Bid #{bid[:id]} finished"
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				HTTPoison.post "http://#{buyer[:id]}/bidending",
-				Jason.encode(buyer),
-				[{"Content-Type", "application/json"}],
-				[]
+				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
+				#HTTPoison.post "http://#{buyer[:id]}/bidending",
+				#Jason.encode(buyer),
+				#[{"Content-Type", "application/json"}],
+				#[]
 			end
 		)
 		{:noreply, buyer}

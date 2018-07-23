@@ -42,16 +42,18 @@ defmodule Router.Bids do
           requires :offer, type: Float
         end
         post do
-          bid = Enum.at(:ets.lookup(:bids, params[:bidId]),0)
-          GenServer.cast(elem(bid, 1), {:new_offer, params[:offer], params[:buyerName]})
+          {bidId, _} = Integer.parse(params[:bidId])
+          {_, pid, _, _, _, _, _, _,_ } = Enum.at(:ets.lookup(:bids, bidId),0)
+          GenServer.cast(pid, {:new_offer, params[:offer], params[:buyerName]})
           json(conn, "New winner #{params[:buyerName]} in bid #{params[:bidId]} with the ammount of #{params[:offer]}")
         end
       end
 
       namespace :cancel do
         post do
-          bid = Enum.at(:ets.lookup(:bids, params[:bidId]),0)
-          GenServer.cast(elem(bid, 1), :cancel)
+          {bidId, _} = Integer.parse(params[:bidId])
+          {_, pid, _, _, _, _, _, _,_ } = Enum.at(:ets.lookup(:bids, bidId),0)
+          GenServer.cast(pid, :cancel)
           json(conn, "Canceled bid #{params[:bidId]}")
         end
       end

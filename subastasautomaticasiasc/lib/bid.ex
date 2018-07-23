@@ -42,15 +42,14 @@ defmodule Bid do
 	end
 
 	def handle_cast({:new_offer, price, winner}, bid) do
-		if price > bid[:actualPrice] do
-			#Validar que la oferta sea mayor
-			newBid = Map.put(bid, :actualPrice, price)
-			newBid = Map.put(newBid, :actualWinner, winner)
+		#Validar que la oferta sea mayor
+		newBid = Map.put(bid, :actualPrice, price)
+		newBid = Map.put(newBid, :actualWinner, winner)
 
-			:ets.insert(:bids, { bid[:id], self(), bid[:tags], bid[:defaultPrice], bid[:duration], bid[:item], price, winner, :calendar.universal_time()})
-			#notifier = Process.whereis(BuyerNotifier)
-			#GenServer.cast(notifier, {:notify_new_price,Bid.bid_for_buyer(newBid)})
-		end
+		:ets.insert(:bids, { bid[:id], self(), :calendar.universal_time(), bid[:defaultPrice], bid[:tags], bid[:duration], bid[:item], price, winner})
+		#notifier = Process.whereis(BuyerNotifier)
+		#GenServer.cast(notifier, {:notify_new_price,Bid.bid_for_buyer(newBid)})
+
 		{:noreply, newBid}
 	end
 

@@ -42,6 +42,7 @@ defmodule Router.Bids do
           requires :offer, type: Float
         end
         post do
+          IO.puts "New offer by #{params[:buyerName]} for #{params[:offer]}"
           {bidId, _} = Integer.parse(params[:bidId])
           pid = elem(Enum.at(:ets.lookup(:bids, bidId),0),1)
           GenServer.cast(pid, {:new_offer, params[:offer], params[:buyerName]})

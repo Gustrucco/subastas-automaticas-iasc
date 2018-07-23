@@ -16,7 +16,8 @@ defmodule Bid.Supervisor do
     IO.puts "********* start_child Bid.Supervisor *********"
 
     spec = Bid.child_spec({id, defaultPrice, duration, tags, item})
-    DynamicSupervisor.start_child(__MODULE__, spec)
+    transientSpec = Map.put(spec, :restart, :transient)
+    DynamicSupervisor.start_child(__MODULE__, transientSpec)
   end
   
 end

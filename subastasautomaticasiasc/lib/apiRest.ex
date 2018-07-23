@@ -43,7 +43,7 @@ defmodule Router.Bids do
         end
         post do
           {bidId, _} = Integer.parse(params[:bidId])
-          {_, pid, _, _, _, _, _, _,_ } = Enum.at(:ets.lookup(:bids, bidId),0)
+          pid = elem(Enum.at(:ets.lookup(:bids, bidId),0),1)
           GenServer.cast(pid, {:new_offer, params[:offer], params[:buyerName]})
           json(conn, "New winner #{params[:buyerName]} in bid #{params[:bidId]} with the ammount of #{params[:offer]}")
         end
@@ -52,7 +52,7 @@ defmodule Router.Bids do
       namespace :cancel do
         post do
           {bidId, _} = Integer.parse(params[:bidId])
-          {_, pid, _, _, _, _, _, _,_ } = Enum.at(:ets.lookup(:bids, bidId),0)
+          pid = elem(Enum.at(:ets.lookup(:bids, bidId),0),1)
           GenServer.cast(pid, :cancel)
           json(conn, "Canceled bid #{params[:bidId]}")
         end

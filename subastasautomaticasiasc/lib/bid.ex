@@ -44,7 +44,8 @@ defmodule Bid do
 	def handle_cast({:new_offer, price, winner}, bid) do
 		newBid = Map.put(bid, :actualPrice, price)
 		newBid = Map.put(newBid, :actualWinner, winner)
-		:ets.insert(:bids, { bid[:id], bid[:tags], bid[:defaultPrice], bid[:duration], bid[:item], bid[:price], winner, :calendar.universal_time()})
+
+		:ets.insert(:bids, { bid[:id], self(), bid[:tags], bid[:defaultPrice], bid[:duration], bid[:item], price, winner, :calendar.universal_time()})
 		#notifier = Process.whereis(BuyerNotifier)
 		#GenServer.cast(notifier, {:notify_new_price,Bid.bid_for_buyer(newBid)})
 		{:noreply, newBid}

@@ -13,7 +13,7 @@ defmodule Bid do
 	def init({id, defaultPrice, duration, tags, item}) do
 		IO.puts "Bid #{id} - init"
 		#Process.send_after(self(), :end_bid, duration)
-		:ets.insert(:bids, { id, self(), defaultPrice, tags, duration, item, defaultPrice, "", :calendar.universal_time()})
+		:ets.insert(:bids, { id, self(), :calendar.universal_time(), defaultPrice, tags, duration, item, defaultPrice, ""})
 
 		{:ok, %{ :id => id,
 		 :tags => tags,

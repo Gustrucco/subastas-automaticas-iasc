@@ -47,7 +47,8 @@ defmodule Router.Bids do
           matchingBuyers = :ets.match(:buyers, { :"_", :"_", :"_", :"_", offerPerson, :"_"})
           if matchingBuyers != [] do
             {bidId, _} = Integer.parse(params[:bidId])
-            {_, pid, _, _, _, _, _, actualPrice, _} = Enum.at(:ets.lookup(:bids, bidId),0)
+            IO.puts "ESTE ES EL BID ID #{bidId}"
+            {_, pid, _, _, _, _, _, actualPrice, _, _} = Enum.at(:ets.lookup(:bids, bidId),0)
             if params[:offer] > actualPrice do
               GenServer.cast(pid, {:new_offer, params[:offer], offerPerson})
               json(conn, "New winner #{offerPerson} in bid #{params[:bidId]} with the ammount of #{params[:offer]}")

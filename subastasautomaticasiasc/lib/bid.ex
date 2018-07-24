@@ -15,6 +15,9 @@ defmodule Bid do
 		Process.send_after(self(), :end_bid, duration * 1000)
 		:ets.insert(:bids, { id, self(), :calendar.universal_time(), defaultPrice, tags, duration, item, defaultPrice, "", false})
 
+		notifier = Process.whereis(BuyerNotifier)
+		GenServer.cast(notifier,{:notify_new_bid, %{ :id => id, :tags => tags, :price => defaultPrice, :item => item }})
+
 		{:ok, %{ :id => id,
 		 :tags => tags,
 		 :defaultPrice => defaultPrice,
@@ -29,8 +32,7 @@ defmodule Bid do
 		%{ :id => bid[:id],
 		 :tags => bid[:tags],
 		 :price =>bid[:actualPrice],
-		 :item => bid[:item],
-		 :bidPid => :erlang.pid_to_list(self())}
+		 :item => bid[:item]}
 	end
 	
 	def handle_info(:end_bid, bid) do
@@ -64,7 +66,7 @@ defmodule Bid do
 
 		notifier = Process.whereis(BuyerNotifier)
 		GenServer.cast(notifier,{:notify_cancelation,Bid.bid_for_buyer(bid)})
-		
+
 		Process.exit(self(), :shutdown)
 		{:noreply, bid}
 	end

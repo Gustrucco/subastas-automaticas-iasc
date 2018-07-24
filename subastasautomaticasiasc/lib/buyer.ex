@@ -5,7 +5,7 @@ defmodule Buyer do
 		IO.puts "Buyer #{id} - start_link"
 		GenServer.start_link(__MODULE__,
 			{id, name, ip, interestedTags},
-			name: {:global, "buyer:#{ip}"})
+			name: {:global, "buyer:#{id}"})
 	end
 
 	# SERVER
@@ -13,11 +13,11 @@ defmodule Buyer do
 	def init({id, name, ip, interestedTags}) do
 		IO.puts "Buyer #{id} - init"
 		:ets.insert(:buyers, { id, self(), :calendar.universal_time(), ip, name, interestedTags })
-		{:ok, %{:name => name , :ip => ip ,:interestedTags => interestedTags }}
+		{:ok, %{:id => id, :name => name, :ip => ip ,:interestedTags => interestedTags }}
 	end
 	
 	def interested_bid? buyer, bid do
-		Enum.any?(buyer[:interestedTags],fn interestedTag -> Enum.any?(bid[:tags],fn tag -> tag == interestedTag end) end)
+		Enum.any?(buyer[:interestedTags],fn interestedTag -> Enum.member?(bid[:tags], interestedTag) end)
 	end
 	
 	def run_if_is_interesting buyer, bid, function do
@@ -27,9 +27,9 @@ defmodule Buyer do
 	end
 	
 	def handle_cast({:notify_new_bid, bid}, buyer) do
-		IO.puts "New bid #{bid[:id]}"
 		run_if_is_interesting(buyer,bid,
 			fn -> 
+				IO.puts "New bid #{bid[:id]}"
 				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
 				#HTTPoison.post "http://#{buyer[:id]}/newbid",
 				#Jason.encode(buyer),
@@ -41,9 +41,9 @@ defmodule Buyer do
 	end
 
 	def handle_cast({:notify_new_price, bid}, buyer) do
-		IO.puts "New offer in bid #{bid[:id]}"
 		run_if_is_interesting(buyer,bid,
 			fn -> 
+				IO.puts "New offer in bid #{bid[:id]}"
 				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
 				#HTTPoison.post "http://#{buyer[:id]}/newpriceforbid",
 				#Jason.encode(buyer),
@@ -55,9 +55,9 @@ defmodule Buyer do
 	end
 
 	def handle_cast({:notify_cancelation, bid}, buyer) do
-		IO.puts "Bid #{bid[:id]} canceled"
 		run_if_is_interesting(buyer,bid,
 			fn -> 
+				IO.puts "Bid #{bid[:id]} canceled"
 				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
 				#HTTPoison.post "http://#{buyer[:id]}/bidcancelation",
 				#Jason.encode(buyer),
@@ -69,9 +69,9 @@ defmodule Buyer do
 	end
 
 	def handle_cast({:notify_ending, bid}, buyer) do
-		IO.puts "Bid #{bid[:id]} finished"
 		run_if_is_interesting(buyer,bid,
 			fn -> 
+				IO.puts "Bid #{bid[:id]} finished"
 				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
 				#HTTPoison.post "http://#{buyer[:id]}/bidending",
 				#Jason.encode(buyer),

@@ -30,11 +30,9 @@ defmodule Buyer do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
 				IO.puts "New bid #{bid[:id]}"
-				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
-				#HTTPoison.post "http://#{buyer[:id]}/newbid",
-				#Jason.encode(buyer),
-				#[{"Content-Type", "application/json"}],
-				#[]
+				HTTPoison.post "http://#{buyer[:id]}/newbid",
+				Jason.encode(bid),
+				[{"Content-Type", "application/json"}]
 			end
 		)
 		{:noreply, buyer}
@@ -44,11 +42,9 @@ defmodule Buyer do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
 				IO.puts "New offer in bid #{bid[:id]}"
-				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
-				#HTTPoison.post "http://#{buyer[:id]}/newpriceforbid",
-				#Jason.encode(buyer),
-				#[{"Content-Type", "application/json"}],
-				#[]
+				HTTPoison.post "http://#{buyer[:id]}/newpriceforbid",
+				Jason.encode(bid),
+				[{"Content-Type", "application/json"}]
 			end
 		)
 		{:noreply, buyer}
@@ -58,11 +54,9 @@ defmodule Buyer do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
 				IO.puts "Bid #{bid[:id]} canceled"
-				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
-				#HTTPoison.post "http://#{buyer[:id]}/bidcancelation",
-				#Jason.encode(buyer),
-				#[{"Content-Type", "application/json"}],
-				#[]
+				HTTPoison.post "http://#{buyer[:id]}/bidcancelation",
+				Jason.encode(bid),
+				[{"Content-Type", "application/json"}]
 			end
 		)
 		{:noreply, buyer}
@@ -72,11 +66,9 @@ defmodule Buyer do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
 				IO.puts "Bid #{bid[:id]} finished"
-				#ACÁ SE LE PEGARÍA A UN AGENTE EXTERNO
-				#HTTPoison.post "http://#{buyer[:id]}/bidending",
-				#Jason.encode(buyer),
-				#[{"Content-Type", "application/json"}],
-				#[]
+				HTTPoison.post "http://#{buyer[:id]}/bidending",
+				Jason.encode(bid),
+				[{"Content-Type", "application/json"}]
 			end
 		)
 		{:noreply, buyer}

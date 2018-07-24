@@ -53,13 +53,13 @@ defmodule Router.Bids do
                 GenServer.cast(pid, {:new_offer, params[:offer], offerPerson})
                 json(conn, "New winner #{offerPerson} in bid #{params[:bidId]} with the ammount of #{params[:offer]}")
               else
-                json(conn, "Sorry #{offerPerson}, bid #{params[:bidId]} price is #{actualPrice}. You must offer higher to win")
+                conn |> put_status(409) |> text("Sorry #{offerPerson}, bid #{params[:bidId]} price is #{actualPrice}. You must offer higher to win")
               end
             else
-              json(conn, "Sorry #{offerPerson}, bid #{params[:bidId]} finished")
+              conn |> put_status(409) |> text("Sorry #{offerPerson}, bid #{params[:bidId]} finished")
             end
           else
-            json(conn, "Sorry #{offerPerson}, we couldn't find you in our system")
+            conn |> put_status(404) |> text("Sorry #{offerPerson}, we couldn't find you in our system")
           end
         end
       end

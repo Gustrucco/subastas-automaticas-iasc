@@ -40,9 +40,10 @@ defmodule Bid do
 		
 		:ets.insert(:bids, { bid[:id], self(), :calendar.universal_time(), bid[:defaultPrice], bid[:tags], bid[:duration], bid[:item], bid[:actualPrice], bid[:actualWinner], true})
 
-		notifier = Process.whereis(BuyerNotifier)
-		GenServer.cast(notifier, {:notify_ending, bid})
-		
+		WorkerUtils.to_all_notifier( fn (notifier) -> 
+			GenServer.cast(notifier, {:notify_ending, bid})
+		end)
+
 		Process.exit(self(), :shutdown)
 		{:noreply, bid}
 	end
@@ -53,9 +54,9 @@ defmodule Bid do
 
 		:ets.insert(:bids, { bid[:id], self(), :calendar.universal_time(), bid[:defaultPrice], bid[:tags], bid[:duration], bid[:item], price, winner, false})
 		
-		notifier = Process.whereis(BuyerNotifier)
-		GenServer.cast(notifier, {:notify_new_price,Bid.bid_for_buyer(newBid)})
-
+		WorkerUtils.to_all_notifier( fn (notifier) -> 
+			GenServer.cast(notifier, {:notify_new_price,Bid.bid_for_buyer(newBid)})
+		end)
 		{:noreply, newBid}
 	end
 
@@ -63,10 +64,11 @@ defmodule Bid do
 		IO.puts "Bid #{bid[:id]} canceled"
 
 		:ets.insert(:bids, { bid[:id], self(), :calendar.universal_time(), bid[:defaultPrice], bid[:tags], bid[:duration], bid[:item], bid[:actualPrice], bid[:actualWinner], true})
-
-		notifier = Process.whereis(BuyerNotifier)
-		GenServer.cast(notifier,{:notify_cancelation,Bid.bid_for_buyer(bid)})
-
+		
+		WorkerUtils.to_all_notifier( fn (notifier) -> 
+			GenServer.cast(notifier,{:notify_cancelation,Bid.bid_for_buyer(bid)})
+		end)
+		
 		Process.exit(self(), :shutdown)
 		{:noreply, bid}
 	end

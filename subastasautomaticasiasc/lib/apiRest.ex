@@ -10,8 +10,18 @@
   
       post do
         id = System.system_time()
-        Buyer.Supervisor.add_buyer(id, params[:name], params[:ip], params[:interestedTags])
-        json(conn, "Created buyer #{id}")
+        {msg, {rsp, pid}} = GenServer.call(BalancerUtils.get_balancer_node(),{
+          :distribute,
+          fn (node) ->
+            Buyer.Supervisor.add_buyer(id, params[:name], params[:ip], params[:interestedTags])
+          end
+        }
+      )
+        if rsp == :ok do
+          json(conn, "Created buyer #{id}")
+        else
+          json(conn, "Fallo")  
+        end
       end
     end
   end
@@ -31,8 +41,18 @@ defmodule Router.Bids do
 
     post do
       id = System.system_time()
-      Bid.Supervisor.add_bid(id, params[:defaultPrice], params[:duration], params[:tags], params[:item])
+      {msg, {rsp, pid}} = GenServer.call(BalancerUtils.get_balancer_node(),{
+          :distribute,
+          fn (node) ->
+            Bid.Supervisor.add_bid(id, params[:defaultPrice], params[:duration], params[:tags], params[:item])
+          end
+        }
+      )
+      if rsp == :ok do
       json(conn, "Created bid #{id}")
+      else
+        json(conn, "Fallo")  
+      end
     end
 
     route_param :bidId do
@@ -44,10 +64,14 @@ defmodule Router.Bids do
         post do
           offerPerson = params[:buyerName]
           IO.puts "New offer by #{offerPerson} for #{params[:offer]}"
+<<<<<<< 20b03f0203bb6f24f8dd81b667d4b0dc9babfbfe
           matchingBuyers = :ets.match(:buyers, { offerPerson, :"_", :"_", :"_", :"_", :"_"})
+=======
+          matchingBuyers = WorkerUtils.match_in_all_workers(:buyers, { :"_", :"_", :"_", :"_", offerPerson, :"_"})
+>>>>>>> subido mergeo
           if matchingBuyers != [] do
             {bidId, _} = Integer.parse(params[:bidId])
-            {_, pid, _, _, _, _, _, actualPrice, _, hasFinished} = Enum.at(:ets.lookup(:bids, bidId),0)
+            {_, pid, _, _, _, _, _, actualPrice, _, hasFinished} = Enum.at(WorkerUtils.lookup_in_all_workers(:bids, bidId),0)
             if !hasFinished do
               if params[:offer] > actualPrice do
                 GenServer.cast(pid, {:new_offer, params[:offer], offerPerson})
@@ -67,7 +91,7 @@ defmodule Router.Bids do
       namespace :cancel do
         post do
           {bidId, _} = Integer.parse(params[:bidId])
-          pid = elem(Enum.at(:ets.lookup(:bids, bidId),0),1)
+          pid = elem(Enum.at(WorkerUtils.lookup_in_all_workers(:bids, bidId),0),1)
           GenServer.cast(pid, :cancel)
           json(conn, "Canceled bid #{params[:bidId]}")
         end

@@ -1,0 +1,12 @@
+{application,subastasautomaticasiasc,
+             [{applications,[kernel,stdlib,elixir,logger,confex,jason,
+                             httpoison,cowboy,maru]},
+              {description,"subastasautomaticasiasc"},
+              {modules,['Elixir.Bid','Elixir.Bid.Supervisor','Elixir.Buyer',
+                        'Elixir.Buyer.Supervisor','Elixir.BuyerNotifier',
+                        'Elixir.BuyerNotifier.Supervisor','Elixir.DataBase',
+                        'Elixir.InitWorker','Elixir.Pid',
+                        'Elixir.WorkerUtils']},
+              {registered,[]},
+              {vsn,"0.1.0"},
+              {extra_applications,[logger]}]}.

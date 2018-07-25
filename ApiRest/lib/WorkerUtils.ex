@@ -29,7 +29,7 @@ defmodule WorkerUtils do
      wkNode[:id]
     end)
 
-  {k,value} = Enum.find(Map.to_list(groupedWorkerNodes),fn {id,value} -> id == hashNode[:id] end)
+  {k,value} = Enum.find(Map.to_list(groupedWorkerNodes),fn ({id,value}) -> id == hashNode[:id] end) 
   List.first(Enum.sort_by(value,fn(node) -> node[:num] end))
   end 
   

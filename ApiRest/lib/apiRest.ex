@@ -10,16 +10,17 @@
   
       post do
         id = System.system_time()
-        {msg, {rsp, pid}} = GenServer.call(BalancerUtils.get_balancer_node(),{
-          :distribute,
-          fn (node) ->
-            Buyer.Supervisor.add_buyer(id, params[:name], params[:ip], params[:interestedTags])
-          end
+        {rsp, pid} = GenServer.call(BalancerUtils.balancer_pid(),{
+          :create_buyer,
+          id, params[:name], 
+          params[:ip], 
+          params[:interestedTags]
         }
       )
         if rsp == :ok do
           json(conn, "Created buyer #{id}")
         else
+          IO.puts(rsp)
           json(conn, "Fallo")  
         end
       end
@@ -41,13 +42,16 @@ defmodule Router.Bids do
 
     post do
       id = System.system_time()
-      {msg, {rsp, pid}} = GenServer.call(BalancerUtils.get_balancer_node(),{
-          :distribute,
-          fn (node) ->
-            Bid.Supervisor.add_bid(id, params[:defaultPrice], params[:duration], params[:tags], params[:item])
-          end
+      {rsp, pid} = GenServer.call(BalancerUtils.balancer_pid(),{
+          :create_bid,
+          id,
+          params[:defaultPrice], 
+          params[:duration], 
+          params[:tags], 
+          params[:item]
         }
       )
+      IO.puts(rsp)
       if rsp == :ok do
       json(conn, "Created bid #{id}")
       else
@@ -110,24 +114,9 @@ end
     end
   end
   
-  
   defmodule MyAPP.API do
     use Maru.Router
-  
-    def start_link(:ok) do
-      IO.puts "** Arrancuti **"
-      DataBase.start_link(:ok)
-      DataBase.init()
-      #ApiRest.Supervisor.start_link
-      children = [
-        {Buyer.Supervisor, :implicit_arg},
-        {Bid.Supervisor, :implicit_arg},
-        {BuyerNotifier.Supervisor, :implicit_arg}
-      ]
-      opts = [strategy: :one_for_one, name: __MODULE__]
-      Supervisor.start_link(children, opts)
-    end
-  
+   
     plug Plug.Parsers,
       pass: ["*/*"],
       json_decoder: Jason,

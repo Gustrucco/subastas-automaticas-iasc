@@ -8,10 +8,10 @@ defmodule LoadBalancer do
 	
 	# SERVER
 
-  def init do
+  def init(args) do
     Process.send(self(), :check_nodes,[])
   
-		{:ok, []}
+		{:ok, args}
   end
   
   def worker_nodes do
@@ -30,9 +30,6 @@ defmodule LoadBalancer do
       :num => nodeNum
     }
   end
-  def first_replica worker_hash do
-    Enum.map(worker_hash,fn {key,value} -> List.first(Enum.sort_by(value,fn(node) -> node[:num] end)) end)
-  end 
   
   def handle_info(:check_nodes, loadBalancer) do
 
@@ -45,12 +42,12 @@ defmodule LoadBalancer do
     groupedWorkerNodes = Enum.group_by(workerNodes,fn(wkNode) ->
      wkNode[:id]
     end)
+
     #por cada grupo agarro
-    Enum.each(groupedWorkerNodes,fn (workerHash) -> 
-      firstReplica = WorkerUtils.first_replica(workerHash) #agarro la primera instancia de ese worker (que deberia ser la activa)
+    Enum.each(Map.to_list(groupedWorkerNodes),fn ({k,value}) -> 
+      firstReplica = List.first(Enum.sort_by(value,fn(node) -> node[:num] end)) #agarro la primera instancia de ese worker (que deberia ser la activa)
       node = firstReplica[:node]
      
-      response = ''
       response = Node.ping node
       if(response != :pong) do #si no responde implicaria que es un nodo replica, no se estaba usando pero el que se estaba usando se cayo sino este no seria el primero del grupo
         identity = :ets.fun2ms fn t when true -> t end 
@@ -72,24 +69,47 @@ defmodule LoadBalancer do
 		{:noreply, loadBalancer}
   end
  
-  #no estoy seguro de si esto funciona parametrizando funciones 
-	def handle_call({:distribute, function}, _from, loadBalancer) do
+  def create_buyer(id, name, ip, interestedTags ) do
     workers = Enum.map(WorkerUtils.worker_nodes,fn (node) -> WorkerUtils.first_replica(node)[:node] end)
-    node = Enum.take_random(workers,1)
-    {response, pid} = function.(node) #no estoy seguro de si se puede llamar asi
-   
+    node = List.first(Enum.take_random(workers,1))
+    :rpc.call(node,Buyer.Supervisor,:add_buyer,[id, name, ip, interestedTags])
+  end
+
+
+  def handle_call({:create_buyer, id, name, ip, interestedTags }, _from, loadBalancer) do
+    IO.puts("estoy distribuyendo")
+    {response, pid} =  LoadBalancer.create_buyer(id, name, ip, interestedTags)
+        
     if (response != :ok) do 
-     GenServer.call(self(),{:distribute,function})
+      {response, pid} =  LoadBalancer.create_buyer(id, name, ip, interestedTags)
     end
-   
+    IO.puts("cree")
     {:reply, {response,pid}, loadBalancer}
   end
+
+  def create_bid(id, defaultPrice, duration, tags, item) do
+    workers = Enum.map(WorkerUtils.worker_nodes,fn (node) -> WorkerUtils.first_replica(node)[:node] end)
+    node = List.first(Enum.take_random(workers,1))
+    :rpc.call(node,Bid.Supervisor,:add_bid,[ id, defaultPrice, duration, tags, item])
+  end
+
+  def handle_call({:create_bid, id, defaultPrice, duration, tags, item }, _from, loadBalancer) do
+    IO.puts("estoy distribuyendo")
+    {response, pid} = LoadBalancer.create_bid(id, defaultPrice, duration, tags, item)
+        
+    if (response != :ok) do 
+      {response, pid} = LoadBalancer.create_bid(id, defaultPrice, duration, tags, item)
+    end
+    IO.puts("cree")
+    {:reply, {response,pid}, loadBalancer}
+  end
+
   
   def handle_call({:whereis, pid}, _from, loadBalancer) do
     workers = Enum.map(WorkerUtils.worker_nodes,fn (node) -> WorkerUtils.first_replica(node)[:node] end)
     
     node = Enum.find(workers,fn(worker) -> 
-      response = :rpc.call(worker,GenServer,:call,[:ping]) ## chequear si es {:ok,:pong} o solo :pong
+      response = :rpc.call(worker,GenServer,:call,[pid,:ping]) ## chequear si es {:ok,:pong} o solo :pong
       (response == :pong)  
     end)
     

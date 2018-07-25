@@ -6,4 +6,10 @@ defmodule BalancerUtils do
       end)
     )
   end
+
+  def balancer_pid do
+    node = BalancerUtils.get_balancer_node()
+
+    :rpc.call(node,Process,:whereis,[LoadBalancer])
+  end
 end

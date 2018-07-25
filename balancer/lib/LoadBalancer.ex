@@ -80,7 +80,7 @@ defmodule LoadBalancer do
     IO.puts("estoy distribuyendo")
     {response, pid} =  LoadBalancer.create_buyer(id, name, ip, interestedTags)
         
-    if (response != :ok) do ##ver como hacer para repetirlo N veces con todos los nodos y sino fallar
+    if (response != :ok) do 
       {response, pid} =  LoadBalancer.create_buyer(id, name, ip, interestedTags)
     end
     IO.puts("cree")
@@ -97,7 +97,7 @@ defmodule LoadBalancer do
     IO.puts("estoy distribuyendo")
     {response, pid} = LoadBalancer.create_bid(id, defaultPrice, duration, tags, item)
         
-    if (response != :ok) do  ##ver como hacer para repetirlo N veces con todos los nodos y sino fallar
+    if (response != :ok) do 
       {response, pid} = LoadBalancer.create_bid(id, defaultPrice, duration, tags, item)
     end
     IO.puts("cree")
@@ -109,7 +109,7 @@ defmodule LoadBalancer do
     workers = Enum.map(WorkerUtils.worker_nodes,fn (node) -> WorkerUtils.first_replica(node)[:node] end)
     
     node = Enum.find(workers,fn(worker) -> 
-      response = :rpc.call(worker,GenServer,:call,[pid,:ping])
+      response = :rpc.call(worker,GenServer,:call,[pid,:ping]) ## chequear si es {:ok,:pong} o solo :pong
       (response == :pong)  
     end)
     

@@ -1,7 +1,7 @@
 defmodule WorkerUtils do
 	
   def worker_nodes do
-    Enum.filter(Node.list,
+    Enum.filter((Node.list ++ [Node.self()]),
     fn(node)-> Regex.match?(~r/worker/,Atom.to_string(node))end)
   end
 
@@ -20,7 +20,7 @@ defmodule WorkerUtils do
   def first_replica node do
     hashNode = WorkerUtils.node_to_node_token(node)
      #agarro todos los nodes workers vivos y los hasheo
-     workerNodes = Enum.map(WorkerUtils.worker_nodes(),fn(node) -> 
+    workerNodes = Enum.map(WorkerUtils.worker_nodes(),fn(node) -> 
       WorkerUtils.node_to_node_token(node)
     end)
     
@@ -34,20 +34,42 @@ defmodule WorkerUtils do
   end 
   
   def to_all_notifier function do
-    workers = Enum.map(WorkerUtils.worker_nodes,fn(node) -> 
-      WorkerUtils.first_replica(node)[:node]
+    workerNodes = Enum.map(WorkerUtils.worker_nodes(),fn(node) -> 
+      WorkerUtils.node_to_node_token(node)
     end)
-    Enum.each(workers,fn(worker) -> 
+    
+    #agarro todos los workers hasheados y los agrupo. Ejemplo de nodo  {node => :"worker-A-1@192.2.0", :id => "A", :num => 1}
+    groupedWorkerNodes = Enum.group_by(workerNodes,fn(wkNode) ->
+     wkNode[:id]
+    end)
+
+    allFirstReplicas = Enum.map(Map.to_list(groupedWorkerNodes),
+    fn {id,value} -> 
+      List.first(Enum.sort_by(value,fn(aNode) -> aNode[:num] end))[:node]
+    end)
+    
+    Enum.each(allFirstReplicas, fn(worker) -> 
     notifier = :rpc.call(worker,Process,:whereis,[BuyerNotifier])
     function.(notifier)
     end)  
   end
 
   def match_in_all_workers table, matcher do
-    workers = Enum.map(WorkerUtils.worker_nodes,fn(node) -> 
-      WorkerUtils.first_replica(node)[:node]
+    workerNodes = Enum.map(WorkerUtils.worker_nodes(),fn(node) -> 
+      WorkerUtils.node_to_node_token(node)
     end)
-    matched = Enum.map(workers,fn (worker) -> 
+    
+    #agarro todos los workers hasheados y los agrupo. Ejemplo de nodo  {node => :"worker-A-1@192.2.0", :id => "A", :num => 1}
+    groupedWorkerNodes = Enum.group_by(workerNodes,fn(wkNode) ->
+     wkNode[:id]
+    end)
+
+    allFirstReplicas = Enum.map(Map.to_list(groupedWorkerNodes),
+    fn {id,value} -> 
+      List.first(Enum.sort_by(value,fn(aNode) -> aNode[:num] end))[:node]
+    end)
+
+    matched = Enum.map(allFirstReplicas,fn (worker) -> 
       :rpc.call(worker,:ets,:match,[table, matcher])
     end)
     List.flatten(matched)

@@ -15,9 +15,10 @@ defmodule Bid do
 		Process.send_after(self(), :end_bid, duration * 1000)
 		:ets.insert(:bids, { id, self(), :calendar.universal_time(), defaultPrice, tags, duration, item, defaultPrice, 0, false})
 
-		notifier = Process.whereis(BuyerNotifier)
-		GenServer.cast(notifier,{:notify_new_bid, %{ :id => id, :tags => tags, :price => defaultPrice, :item => item }})
-
+		WorkerUtils.to_all_notifier(fn(notifier) -> 
+			GenServer.cast(notifier,{:notify_new_bid, %{ :id => id, :tags => tags, :price => defaultPrice, :item => item }})
+		end)
+		
 		{:ok, %{ :id => id,
 		 :tags => tags,
 		 :defaultPrice => defaultPrice,

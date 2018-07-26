@@ -3,6 +3,7 @@ Repositorio para el trabajo práctico de subastas autómaticas de la materia ele
 
 ## levantar la API
   dentro de la carpeta api rest
+  
     iex --name api@[IP] -S mix
     
 

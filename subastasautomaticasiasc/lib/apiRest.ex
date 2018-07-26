@@ -38,13 +38,13 @@ defmodule Router.Bids do
     route_param :bidId do
       namespace :offer do
         params do
-          requires :buyerName, type: String
+          requires :buyerName, type: Integer
           requires :offer, type: Float
         end
         post do
           offerPerson = params[:buyerName]
           IO.puts "New offer by #{offerPerson} for #{params[:offer]}"
-          matchingBuyers = :ets.match(:buyers, { :"_", :"_", :"_", :"_", offerPerson, :"_"})
+          matchingBuyers = :ets.match(:buyers, { offerPerson, :"_", :"_", :"_", :"_", :"_"})
           if matchingBuyers != [] do
             {bidId, _} = Integer.parse(params[:bidId])
             {_, pid, _, _, _, _, _, actualPrice, _, hasFinished} = Enum.at(:ets.lookup(:bids, bidId),0)

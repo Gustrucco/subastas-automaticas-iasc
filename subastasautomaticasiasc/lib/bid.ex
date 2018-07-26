@@ -13,7 +13,7 @@ defmodule Bid do
 	def init({id, defaultPrice, duration, tags, item}) do
 		IO.puts "Bid #{id} - init"
 		Process.send_after(self(), :end_bid, duration * 1000)
-		:ets.insert(:bids, { id, self(), :calendar.universal_time(), defaultPrice, tags, duration, item, defaultPrice, "", false})
+		:ets.insert(:bids, { id, self(), :calendar.universal_time(), defaultPrice, tags, duration, item, defaultPrice, 0, false})
 
 		notifier = Process.whereis(BuyerNotifier)
 		GenServer.cast(notifier,{:notify_new_bid, %{ :id => id, :tags => tags, :price => defaultPrice, :item => item }})
@@ -24,7 +24,7 @@ defmodule Bid do
 		 :duration => duration,
 		 :item => item,
 		 :actualPrice => defaultPrice,
-		 :actualWinner => ""
+		 :actualWinner => 0
 		}}
 	end
 

@@ -16,7 +16,7 @@ defmodule WorkerUtils do
       :num => nodeNum
     }
   end
-  
+
   def first_replica node do
     hashNode = WorkerUtils.node_to_node_token(node)
      #agarro todos los nodes workers vivos y los hasheo

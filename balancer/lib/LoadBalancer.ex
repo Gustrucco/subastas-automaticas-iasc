@@ -32,7 +32,7 @@ defmodule LoadBalancer do
   end
   
   def handle_info(:check_nodes, loadBalancer) do
-
+    IO.puts("chequeando nodos")
     #agarro todos los nodes workers vivos y los hasheo
     workerNodes = Enum.map(WorkerUtils.worker_nodes(),fn(node) -> 
       WorkerUtils.node_to_node_token(node)
@@ -47,12 +47,27 @@ defmodule LoadBalancer do
     Enum.each(Map.to_list(groupedWorkerNodes),fn ({k,value}) -> 
       firstReplica = List.first(Enum.sort_by(value,fn(node) -> node[:num] end)) #agarro la primera instancia de ese worker (que deberia ser la activa)
       node = firstReplica[:node]
+      
+      buyerAlive = true
+      if(:rpc.call(node,:ets,:first,[:buyers]) != :"$end_of_table") do
+        id = :rpc.call(node,:ets,:first,[:buyers])
+        aBuyer =  Enum.at(Tuple.to_list(List.first(:rpc.call(node,:ets,:lookup,[:buyers,id]))),1)
      
-      response = Node.ping node
-      if(response != :pong) do #si no responde implicaria que es un nodo replica, no se estaba usando pero el que se estaba usando se cayo sino este no seria el primero del grupo
-        identity = :ets.fun2ms fn t when true -> t end 
-        deadBids = :rpc.call(node,:ets,:select,[:bids,identity])
-        deadBuyers = :rpc.call(node,:ets,:select,[:buyers,identity]) 
+        buyerAlive = :rpc.call(node, Pid, :your_pid?, [aBuyer])
+      end
+      bidAlive = true
+      if(:rpc.call(node,:ets,:first,[:bids]) != :"$end_of_table") do
+        id = :rpc.call(node,:ets,:first,[:bids])
+        aBid =  Enum.at(Tuple.to_list(List.first(:rpc.call(node,:ets,:lookup,[:bids,id]))),1)
+    
+        bidAlive = :rpc.call(node, Pid, :your_pid?, [aBid])
+      end
+      
+      if(!bidAlive || !buyerAlive) do #Si alguno no esta vivo implicaria que el nodo se cayo
+      IO.puts("reviviendo en #{Atom.to_string(node)}")
+    
+        deadBids = List.flatten(:rpc.call(node,:ets,:match,[:bids,:"$1"]))
+        deadBuyers = List.flatten(:rpc.call(node,:ets,:match,[:buyers,:"$1"]))
 
         Enum.each(deadBuyers,fn(deadBuyer) ->  
            :rpc.call(node,Buyer.Supervisor,:add_buyer,[elem(deadBuyer,0),elem(deadBuyer,3),elem(deadBuyer,4),elem(deadBuyer,5)])

@@ -32,7 +32,7 @@ defmodule Pid do
     token
   end
 
-  def your_pid(aPid) do
+  def your_pid?(aPid) do
     {a,b,c} = Pid.pid_tokens(aPid)
     a  == Pid.my_token()
   end

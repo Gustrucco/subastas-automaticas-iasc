@@ -12,7 +12,7 @@ defmodule Buyer do
 
 	def init({id, name, ip, interestedTags}) do
 		IO.puts "Buyer #{id} - init"
-		:ets.insert(:buyers, { id, self(), :calendar.universal_time(), ip, name, interestedTags })
+		:ets.insert(:buyers, { id, self(), :calendar.universal_time(),name, ip, interestedTags })
 		{:ok, %{:id => id, :name => name, :ip => ip ,:interestedTags => interestedTags }}
 	end
 	
@@ -72,5 +72,9 @@ defmodule Buyer do
 			end
 		)
 		{:noreply, buyer}
+	end
+
+	def handle_call({:ping},_from, buyer) do
+		{:reply,:pong, buyer}
 	end
 end

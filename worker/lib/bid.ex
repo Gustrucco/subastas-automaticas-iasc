@@ -13,7 +13,7 @@ defmodule Bid do
 	def init({id, defaultPrice, duration, tags, item}) do
 		IO.puts "Bid #{id} - init"
 		Process.send_after(self(), :end_bid, duration * 1000)
-		:ets.insert(:bids, { id, self(), :calendar.universal_time(), defaultPrice, tags, duration, item, defaultPrice, 0, false})
+		:ets.insert(:bids, { id, self(), :calendar.universal_time(), defaultPrice, duration, tags, item, defaultPrice, 0, false})
 
 		WorkerUtils.to_all_notifier(fn(notifier) -> 
 			GenServer.cast(notifier,{:notify_new_bid, %{ :id => id, :tags => tags, :price => defaultPrice, :item => item }})
@@ -39,7 +39,7 @@ defmodule Bid do
 	def handle_info(:end_bid, bid) do
 		IO.puts "Bid #{bid[:id]} ended"
 		
-		:ets.insert(:bids, { bid[:id], self(), :calendar.universal_time(), bid[:defaultPrice], bid[:tags], bid[:duration], bid[:item], bid[:actualPrice], bid[:actualWinner], true})
+		:ets.insert(:bids, { bid[:id], self(), :calendar.universal_time(), bid[:defaultPrice], bid[:duration], bid[:tags], bid[:item], bid[:actualPrice], bid[:actualWinner], true})
 
 		WorkerUtils.to_all_notifier( fn (notifier) -> 
 			GenServer.cast(notifier, {:notify_ending, bid})
@@ -53,7 +53,7 @@ defmodule Bid do
 		newBid = Map.put(bid, :actualPrice, price)
 		newBid = Map.put(newBid, :actualWinner, winner)
 
-		:ets.insert(:bids, { bid[:id], self(), :calendar.universal_time(), bid[:defaultPrice], bid[:tags], bid[:duration], bid[:item], price, winner, false})
+		:ets.insert(:bids, { bid[:id], self(), :calendar.universal_time(), bid[:defaultPrice], bid[:duration], bid[:tags], bid[:item], price, winner, false})
 		
 		WorkerUtils.to_all_notifier( fn (notifier) -> 
 			GenServer.cast(notifier, {:notify_new_price,Bid.bid_for_buyer(newBid)})
@@ -64,7 +64,7 @@ defmodule Bid do
 	def handle_cast(:cancel, bid) do
 		IO.puts "Bid #{bid[:id]} canceled"
 
-		:ets.insert(:bids, { bid[:id], self(), :calendar.universal_time(), bid[:defaultPrice], bid[:tags], bid[:duration], bid[:item], bid[:actualPrice], bid[:actualWinner], true})
+		:ets.insert(:bids, { bid[:id], self(), :calendar.universal_time(), bid[:defaultPrice], bid[:duration], bid[:tags], bid[:item], bid[:actualPrice], bid[:actualWinner], true})
 		
 		WorkerUtils.to_all_notifier( fn (notifier) -> 
 			GenServer.cast(notifier,{:notify_cancelation,Bid.bid_for_buyer(bid)})
@@ -73,4 +73,9 @@ defmodule Bid do
 		Process.exit(self(), :shutdown)
 		{:noreply, bid}
 	end
+
+	def handle_call({:ping},_from, bid) do
+		{:reply,:pong, bid}
+	end
+
 end

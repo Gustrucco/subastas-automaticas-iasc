@@ -5,22 +5,23 @@ defmodule Syncronizer do
 		GenServer.start_link(__MODULE__, %{nodes: []}, name: __MODULE__)
 	end
 
-  def init do
-    Process.send(self(), :sync_dbs,[])
-
-		{:ok, []}
-  end
-  
 	# SERVER
-  def init(args) do
-    {:ok, args}
-  end
   
+  def init(args) do
+    Process.send(self(), :sync_dbs,[])
+		{:ok, args}
+  end
+
   def drop_first list do
   Enum.take(list,((length(list)-1) * (-1)))
   end
 
+  def identity do
+    :ets.fun2ms(fn t when true -> t end) 
+  end
+  
   def handle_info(:sync_dbs, syncronizer) do
+      IO.puts("sincronizando")
       #agarro todos los nodes workers vivos y los hasheo
       workerNodes = Enum.map(WorkerUtils.worker_nodes(),fn(node) -> 
         WorkerUtils.node_to_node_token(node)
@@ -31,23 +32,25 @@ defmodule Syncronizer do
        wkNode[:id]
       end)
       
-      Enum.each(groupedWorkerNodes,fn {id, workerHashes} -> 
-        actualNode = List.first(workerHashes)[:node] #agarro el nod actual
-        identity = :ets.fun2ms fn t when true -> t end 
+      Enum.each(Map.to_list(groupedWorkerNodes),fn {id, workerHashes} -> 
+        allInstancesSorted = Enum.sort_by(workerHashes,fn(node) -> node[:num] end)
+        actualNode = List.first(allInstancesSorted)[:node]
+        IO.puts("nodo actual : #{Atom.to_string(actualNode)}")
+      
+        bids = List.flatten(:rpc.call(actualNode,:ets,:match,[:bids,:"$1"]))
+
+        buyers =  List.flatten(:rpc.call(actualNode,:ets,:match,[:buyers,:"$1"]))
+      
+        replicaNodes = Syncronizer.drop_first(allInstancesSorted)
         
-        bids = :rpc.call(actualNode,:etc,:select,[:bids,identity]) # agarro su coleccion de bids
-        
-        buyers = :rpc.call(actualNode,:etc,:select,[:buyers,identity]) # agarro su coleccion de buyers
-        
-        replicaNodes = Syncronizer.drop_first(workerHashes)
-        
+       
         Enum.each(replicaNodes,fn(replicaNode)-> #por cada replica node 
           Enum.each(bids,fn(row) -> 
-            :rpc.call(node,:etc,:insert,[:bids,row]) #replico los bids
+            :rpc.call(replicaNode[:node],:ets,:insert,[:bids,row]) #replico los bids
           end)
 
           Enum.each(buyers,fn(row) -> 
-            :rpc.call(node,:etc,:insert,[:buyers,row]) #replico los buyers
+            :rpc.call(replicaNode[:node],:ets,:insert,[:buyers,row]) #replico los buyers
           end)
       end)
 

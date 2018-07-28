@@ -51,15 +51,13 @@ defmodule LoadBalancer do
       buyerAlive = true
       if(:rpc.call(node,:ets,:first,[:buyers]) != :"$end_of_table") do
         id = :rpc.call(node,:ets,:first,[:buyers])
-        aBuyer =  Enum.at(Tuple.to_list(List.first(:rpc.call(node,:ets,:lookup,[:buyers,id]))),1)
-     
+        aBuyer =  Enum.at(Tuple.to_list(List.first(:rpc.call(node,:ets,:lookup,[:buyers,id]))),1)  
         buyerAlive = :rpc.call(node, Pid, :your_pid?, [aBuyer])
       end
       bidAlive = true
       if(:rpc.call(node,:ets,:first,[:bids]) != :"$end_of_table") do
         id = :rpc.call(node,:ets,:first,[:bids])
         aBid =  Enum.at(Tuple.to_list(List.first(:rpc.call(node,:ets,:lookup,[:bids,id]))),1)
-    
         bidAlive = :rpc.call(node, Pid, :your_pid?, [aBid])
       end
       
@@ -73,8 +71,13 @@ defmodule LoadBalancer do
            :rpc.call(node,Buyer.Supervisor,:add_buyer,[elem(deadBuyer,0),elem(deadBuyer,3),elem(deadBuyer,4),elem(deadBuyer,5)])
         end)
     
-        Enum.each(deadBids,fn(deadBid) -> 
-           :rpc.call(node,Bid.Supervisor,:add_bid,[elem(deadBid,0),elem(deadBid,3),elem(deadBid,4),elem(deadBid,5),elem(deadBid,6),elem(deadBid,7),elem(deadBid,8)])
+        Enum.each(Enum.filter(deadBids,fn(bid) -> !elem(bid,8) end ),fn(deadBid) -> 
+          idAndCreationTimeStamp = elem(deadBid,0)
+          durationInSec =  elem(deadBid,4)
+          durationFixed = div (((durationInSec + 5) * 1000000000) - (System.system_time - idAndCreationTimeStam)), 1000000000 #calculo la diferencia de timestamps y le sumo 5 seg para la nueva duracion
+          newDuration = :erlang.max(5,durationFixed) #revive con una duracion x default si ya murio
+
+          :rpc.call(node,Bid.Supervisor,:add_bid,[elem(deadBid,0),elem(deadBid,3),newDuration,elem(deadBid,5),elem(deadBid,6)])
         end)
       end
     end)

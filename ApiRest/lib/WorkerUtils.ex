@@ -73,7 +73,7 @@ defmodule WorkerUtils do
     matched = Enum.map(allFirstReplicas,fn (worker) -> 
       :rpc.call(worker,:ets,:match,[table, matcher])
     end)
-    matched
+    List.flatten(matched)
   end
 
   def lookup_in_all_workers table, id do

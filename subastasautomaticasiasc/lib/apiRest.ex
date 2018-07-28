@@ -10,17 +10,16 @@
   
       post do
         id = System.system_time()
-        {rsp, pid} = GenServer.call(BalancerUtils.balancer_pid(),{
-          :create_buyer,
-          id, params[:name], 
-          params[:ip], 
-          params[:interestedTags]
+        {msg, {rsp, pid}} = GenServer.call(BalancerUtils.get_balancer_node(),{
+          :distribute,
+          fn (node) ->
+            Buyer.Supervisor.add_buyer(id, params[:name], params[:ip], params[:interestedTags])
+          end
         }
       )
         if rsp == :ok do
           json(conn, "Created buyer #{id}")
         else
-          IO.puts(rsp)
           json(conn, "Fallo")  
         end
       end
@@ -42,16 +41,13 @@ defmodule Router.Bids do
 
     post do
       id = System.system_time()
-      {rsp, pid} = GenServer.call(BalancerUtils.balancer_pid(),{
-          :create_bid,
-          id,
-          params[:defaultPrice], 
-          params[:duration], 
-          params[:tags], 
-          params[:item]
+      {msg, {rsp, pid}} = GenServer.call(BalancerUtils.get_balancer_node(),{
+          :distribute,
+          fn (node) ->
+            Bid.Supervisor.add_bid(id, params[:defaultPrice], params[:duration], params[:tags], params[:item])
+          end
         }
       )
-      IO.puts(rsp)
       if rsp == :ok do
       json(conn, "Created bid #{id}")
       else
@@ -68,7 +64,7 @@ defmodule Router.Bids do
         post do
           offerPerson = params[:buyerName]
           IO.puts "New offer by #{offerPerson} for #{params[:offer]}"
-          matchingBuyers = WorkerUtils.match_in_all_workers(:buyers, { offerPerson, :"$1", :"_", :"_", :"_", :"_"})
+          matchingBuyers = :ets.match(:buyers, { offerPerson, :"_", :"_", :"_", :"_", :"_"})
           if matchingBuyers != [] do
             {bidId, _} = Integer.parse(params[:bidId])
             {_, pid, _, _, _, _, _, actualPrice, _, hasFinished} = Enum.at(WorkerUtils.lookup_in_all_workers(:bids, bidId),0)
@@ -110,9 +106,24 @@ end
     end
   end
   
+  
   defmodule MyAPP.API do
     use Maru.Router
-   
+  
+    def start_link(:ok) do
+      IO.puts "** Arrancuti **"
+      DataBase.start_link(:ok)
+      DataBase.init()
+      #ApiRest.Supervisor.start_link
+      children = [
+        {Buyer.Supervisor, :implicit_arg},
+        {Bid.Supervisor, :implicit_arg},
+        {BuyerNotifier.Supervisor, :implicit_arg}
+      ]
+      opts = [strategy: :one_for_one, name: __MODULE__]
+      Supervisor.start_link(children, opts)
+    end
+  
     plug Plug.Parsers,
       pass: ["*/*"],
       json_decoder: Jason,

@@ -13,6 +13,7 @@ Repositorio para el trabajo práctico de subastas autómaticas de la materia ele
     iex --name balancer@[IP] -S mix
     
     LoadBalancer.Supervisor.start_link (para arrancar el balancer)
+    Syncronizer.Supervisor.start_link (para arrancar el syncronizer)
 ## levantar workers
   dentro de la carpeta worker
   

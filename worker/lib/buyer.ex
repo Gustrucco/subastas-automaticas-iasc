@@ -29,7 +29,7 @@ defmodule Buyer do
 	def handle_cast({:notify_new_bid, bid}, buyer) do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				IO.puts "New bid #{bid[:id]}"
+				IO.puts "New bid #{bid[:id]} notification for #{buyer[:id]}"
 				HTTPoison.post "http://#{buyer[:id]}/newbid",
 				Jason.encode(bid),
 				[{"Content-Type", "application/json"}]
@@ -41,7 +41,7 @@ defmodule Buyer do
 	def handle_cast({:notify_new_price, bid}, buyer) do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				IO.puts "New offer in bid #{bid[:id]}"
+				IO.puts "New offer in bid #{bid[:id]}  notification for #{buyer[:id]}"
 				HTTPoison.post "http://#{buyer[:id]}/newpriceforbid",
 				Jason.encode(bid),
 				[{"Content-Type", "application/json"}]
@@ -53,7 +53,7 @@ defmodule Buyer do
 	def handle_cast({:notify_cancelation, bid}, buyer) do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				IO.puts "Bid #{bid[:id]} canceled"
+				IO.puts "Bid #{bid[:id]} canceled  notification for #{buyer[:id]}"
 				HTTPoison.post "http://#{buyer[:id]}/bidcancelation",
 				Jason.encode(bid),
 				[{"Content-Type", "application/json"}]
@@ -65,7 +65,7 @@ defmodule Buyer do
 	def handle_cast({:notify_ending, bid}, buyer) do
 		run_if_is_interesting(buyer,bid,
 			fn -> 
-				IO.puts "Bid #{bid[:id]} finished"
+				IO.puts "Bid #{bid[:id]} finished  notification for #{buyer[:id]}"
 				HTTPoison.post "http://#{buyer[:id]}/bidending",
 				Jason.encode(bid),
 				[{"Content-Type", "application/json"}]

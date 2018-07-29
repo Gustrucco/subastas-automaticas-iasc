@@ -55,28 +55,31 @@ defmodule LoadBalancer do
         buyerAlive = :rpc.call(node, Pid, :your_pid?, [aBuyer])
       end
       bidAlive = true
-      if(:rpc.call(node,:ets,:first,[:bids]) != :"$end_of_table") do
-        id = :rpc.call(node,:ets,:first,[:bids])
-        aBid =  Enum.at(Tuple.to_list(List.first(:rpc.call(node,:ets,:lookup,[:bids,id]))),1)
+      noEndedBids = List.flatten(:rpc.call(node,:ets,:match,[:bids,{:"_",:"$1",:"_",:"_",:"_",:"_",:"_",:"_",:"_",false}]))
+       
+      if( noEndedBids != []) do
+        aBid =  List.first(noEndedBids)
         bidAlive = :rpc.call(node, Pid, :your_pid?, [aBid])
       end
       
       if(!bidAlive || !buyerAlive) do #Si alguno no esta vivo implicaria que el nodo se cayo
       IO.puts("reviviendo en #{Atom.to_string(node)}")
     
-        deadBids = List.flatten(:rpc.call(node,:ets,:match,[:bids,:"$1"]))
         deadBuyers = List.flatten(:rpc.call(node,:ets,:match,[:buyers,:"$1"]))
 
+        deadBids = List.flatten(:rpc.call(node,:ets,:match,[:bids,:"$1"]))
+      
         Enum.each(deadBuyers,fn(deadBuyer) ->  
            :rpc.call(node,Buyer.Supervisor,:add_buyer,[elem(deadBuyer,0),elem(deadBuyer,3),elem(deadBuyer,4),elem(deadBuyer,5)])
         end)
     
-        Enum.each(Enum.filter(deadBids,fn(bid) -> !elem(bid,8) end ),fn(deadBid) -> 
+        Enum.each(Enum.filter(deadBids,fn(bid) -> !elem(bid,9) end ),fn(deadBid) -> 
           idAndCreationTimeStamp = elem(deadBid,0)
           durationInSec =  elem(deadBid,4)
-          durationFixed = div (((durationInSec + 5) * 1000000000) - (System.system_time - idAndCreationTimeStamp)), 1000000000 #calculo la diferencia de timestamps y le sumo 5 seg para la nueva duracion
+          durationFixed = div (((durationInSec) * 1000000000) - (System.system_time - idAndCreationTimeStamp)), 1000000000 #calculo la diferencia de timestamps y le sumo 5 seg para la nueva duracion
           newDuration = :erlang.max(5,durationFixed) #revive con una duracion x default si ya murio
-
+          IO.puts("reviviendo #{elem(deadBid,0)} con duracion #{newDuration}")
+          
           :rpc.call(node,Bid.Supervisor,:add_bid,[elem(deadBid,0),elem(deadBid,3),newDuration,elem(deadBid,5),elem(deadBid,6)])
         end)
       end

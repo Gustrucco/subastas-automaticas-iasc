@@ -74,7 +74,7 @@ defmodule LoadBalancer do
         Enum.each(Enum.filter(deadBids,fn(bid) -> !elem(bid,8) end ),fn(deadBid) -> 
           idAndCreationTimeStamp = elem(deadBid,0)
           durationInSec =  elem(deadBid,4)
-          durationFixed = div (((durationInSec + 5) * 1000000000) - (System.system_time - idAndCreationTimeStam)), 1000000000 #calculo la diferencia de timestamps y le sumo 5 seg para la nueva duracion
+          durationFixed = div (((durationInSec + 5) * 1000000000) - (System.system_time - idAndCreationTimeStamp)), 1000000000 #calculo la diferencia de timestamps y le sumo 5 seg para la nueva duracion
           newDuration = :erlang.max(5,durationFixed) #revive con una duracion x default si ya murio
 
           :rpc.call(node,Bid.Supervisor,:add_bid,[elem(deadBid,0),elem(deadBid,3),newDuration,elem(deadBid,5),elem(deadBid,6)])

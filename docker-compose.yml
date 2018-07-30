@@ -1,0 +1,34 @@
+version: "3"
+services:
+  balancer:
+    image: balancer
+    environment:
+      - ip=192.168.0.4 #This should be the ip where it is deployed
+    networks:
+      - auctionnet
+
+  api:
+   image: api
+   environment:
+     - ip=192.168.0.4 #This should be the ip where it is deployed
+   networks:
+     - overlay
+
+  workerA1:
+  image: worker
+  environment:
+    - ip=192.168.0.4 #This should be the ip where it is deployed
+    - name=worker-A-1
+  networks:
+    - overlay
+
+  workerA2:
+   image: worker
+   environment:
+     - ip=192.168.0.4 #This should be the ip where it is deployed
+     - name=worker-A-2
+   networks:
+     - overlay
+
+networks:
+  auctionnet:

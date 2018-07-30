@@ -12,15 +12,15 @@ services:
    environment:
      - ip=192.168.0.4 #This should be the ip where it is deployed
    networks:
-     - overlay
+     - auctionnet
 
   workerA1:
-  image: worker
-  environment:
-    - ip=192.168.0.4 #This should be the ip where it is deployed
-    - name=worker-A-1
-  networks:
-    - overlay
+    image: worker
+    environment:
+      - ip=192.168.0.4 #This should be the ip where it is deployed
+      - name=worker-A-1
+    networks:
+      - auctionnet
 
   workerA2:
    image: worker
@@ -28,7 +28,7 @@ services:
      - ip=192.168.0.4 #This should be the ip where it is deployed
      - name=worker-A-2
    networks:
-     - overlay
+     - auctionnet
 
 networks:
   auctionnet:
